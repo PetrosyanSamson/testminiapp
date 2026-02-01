@@ -1,77 +1,86 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body {
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--tg-theme-secondary-bg-color);
-            color: var(--tg-theme-text-color);
-            margin: 0; padding: 15px;
-            user-select: none;
+        :root {
+            --bg: var(--tg-theme-bg-color, #ffffff);
+            --text: var(--tg-theme-text-color, #000000);
+            --hint: var(--tg-theme-hint-color, #999999);
+            --button: var(--tg-theme-button-color, #248bed);
         }
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
+        body { font-family: sans-serif; background-color: var(--tg-theme-secondary-bg-color); color: var(--text); margin: 0; padding: 16px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .card { background: var(--bg); border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer; position: relative; }
+        .card img { width: 100%; height: 120px; object-fit: cover; }
+        .card-info { padding: 10px; text-align: center; font-weight: bold; font-size: 14px; }
+        
+        /* Окно подтверждения */
+        #modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center;
         }
-        .card {
-            background: var(--tg-theme-bg-color);
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            border: 1px solid rgba(0,0,0,0.05);
-            transition: transform 0.1s;
+        .modal-content {
+            background: var(--bg); padding: 20px; border-radius: 16px; width: 80%; text-align: center;
         }
-        .card:active { transform: scale(0.96); }
-        .card img {
-            width: 100%;
-            height: 110px;
-            object-fit: cover;
+        .btn-confirm {
+            background: var(--button); color: white; border: none; padding: 12px 24px;
+            border-radius: 10px; font-weight: bold; margin-top: 15px; width: 100%; cursor: pointer;
         }
-        .card-title {
-            padding: 8px;
-            text-align: center;
-            font-size: 14px;
-            font-weight: 600;
-        }
-        h2 { text-align: center; font-size: 18px; margin-bottom: 20px; }
+        .btn-cancel { background: none; border: none; color: var(--hint); margin-top: 10px; cursor: pointer; }
     </style>
 </head>
 <body>
-    <h2>Выберите стиль генерации</h2>
+
+    <h3 style="text-align: center;">Выберите шаблон</h3>
+    
     <div class="grid">
-        <!-- Карточка 1 -->
-        <div class="card" onclick="send('Cyberpunk', 'Cinematic cyberpunk style, neon lights, highly detailed, futuristic city')">
-            <img src="https://img.freepik.com/free-photo/view-futuristic-city-landscape_23-2150915993.jpg">
-            <div class="card-title">Киберпанк 🤖</div>
+        <!-- Шаблон Штраф -->
+        <div class="card" onclick="openModal('car_fine', 'Штраф ГИБДД')">
+            <img src="https://i.ibb.co/p6XfMv0/photo-2024-03-21-12-00-00.jpg" alt="Fine">
+            <div class="card-info">Штраф ГИБДД 🚔</div>
         </div>
-        <!-- Карточка 2 -->
-        <div class="card" onclick="send('Pixar Character', 'Cute 3D character in Pixar style, soft studio lighting, high quality render')">
-            <img src="https://img.freepik.com/free-photo/view-3d-boy-character_23-2150709923.jpg">
-            <div class="card-title">Мультфильм 🧸</div>
+
+        <!-- Другой шаблон для примера -->
+        <div class="card" onclick="openModal('cyberpunk', 'Киберпанк')">
+            <img src="https://img.freepik.com/free-photo/view-futuristic-city-landscape_23-2150915993.jpg" alt="Cyber">
+            <div class="card-info">Киберпанк 🤖</div>
         </div>
-        <!-- Карточка 3 -->
-        <div class="card" onclick="send('Oil Painting', 'Classical oil painting style, visible brush strokes, artistic masterpiece')">
-            <img src="https://img.freepik.com/free-photo/abstract-art-painting-with-vibrant-colors_23-2148835560.jpg">
-            <div class="card-title">Масло 🎨</div>
-        </div>
-        <!-- Карточка 4 -->
-        <div class="card" onclick="send('Viking', 'Viking warrior style, epic cinematic background, snowy forest, fantasy')">
-            <img src="https://img.freepik.com/free-photo/viking-man-portrait_23-2150153303.jpg">
-            <div class="card-title">Викинг ⚔️</div>
+    </div>
+
+    <!-- Модалка -->
+    <div id="modal">
+        <div class="modal-content">
+            <h4 id="modal-title">Подтверждение</h4>
+            <p style="font-size: 14px; color: var(--hint);">Вы выбрали этот стиль. Применить его к вашему фото?</p>
+            <button class="btn-confirm" onclick="confirmSelection()">Генерировать</button>
+            <button class="btn-cancel" onclick="closeModal()">Отмена</button>
         </div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
+        
+        let selectedTemplateId = null;
 
-        function send(name, prompt) {
-            const data = JSON.stringify({ name: name, prompt: prompt });
-            tg.sendData(data); // Отправляет данные боту
+        function openModal(id, name) {
+            selectedTemplateId = id;
+            document.getElementById('modal-title').innerText = name;
+            document.getElementById('modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        function confirmSelection() {
+            if (selectedTemplateId) {
+                // Отправляем боту ТОЛЬКО ID шаблона
+                tg.sendData(JSON.stringify({ template_id: selectedTemplateId }));
+            }
         }
     </script>
 </body>
