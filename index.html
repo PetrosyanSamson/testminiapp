@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--tg-theme-secondary-bg-color);
+            color: var(--tg-theme-text-color);
+            margin: 0; padding: 15px;
+            user-select: none;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .card {
+            background: var(--tg-theme-bg-color);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: transform 0.1s;
+        }
+        .card:active { transform: scale(0.96); }
+        .card img {
+            width: 100%;
+            height: 110px;
+            object-fit: cover;
+        }
+        .card-title {
+            padding: 8px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        h2 { text-align: center; font-size: 18px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <h2>Выберите стиль генерации</h2>
+    <div class="grid">
+        <!-- Карточка 1 -->
+        <div class="card" onclick="send('Cyberpunk', 'Cinematic cyberpunk style, neon lights, highly detailed, futuristic city')">
+            <img src="https://img.freepik.com/free-photo/view-futuristic-city-landscape_23-2150915993.jpg">
+            <div class="card-title">Киберпанк 🤖</div>
+        </div>
+        <!-- Карточка 2 -->
+        <div class="card" onclick="send('Pixar Character', 'Cute 3D character in Pixar style, soft studio lighting, high quality render')">
+            <img src="https://img.freepik.com/free-photo/view-3d-boy-character_23-2150709923.jpg">
+            <div class="card-title">Мультфильм 🧸</div>
+        </div>
+        <!-- Карточка 3 -->
+        <div class="card" onclick="send('Oil Painting', 'Classical oil painting style, visible brush strokes, artistic masterpiece')">
+            <img src="https://img.freepik.com/free-photo/abstract-art-painting-with-vibrant-colors_23-2148835560.jpg">
+            <div class="card-title">Масло 🎨</div>
+        </div>
+        <!-- Карточка 4 -->
+        <div class="card" onclick="send('Viking', 'Viking warrior style, epic cinematic background, snowy forest, fantasy')">
+            <img src="https://img.freepik.com/free-photo/viking-man-portrait_23-2150153303.jpg">
+            <div class="card-title">Викинг ⚔️</div>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        function send(name, prompt) {
+            const data = JSON.stringify({ name: name, prompt: prompt });
+            tg.sendData(data); // Отправляет данные боту
+        }
+    </script>
+</body>
+</html>
